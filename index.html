@@ -27,7 +27,7 @@
       width: 100%; padding: 10px 12px; border: 1px solid #e0e0e0; border-radius: 6px; 
       font-size: 13px; font-family: inherit; background: white; color: #2c2c2a;
     }
-    textarea { resize: vertical; min-height: 100px; }
+    textarea { resize: vertical; min-height: 80px; }
     select:focus, input:focus, textarea:focus { outline: none; border-color: #2c2c2a; background: #fafafa; }
     .zone-group { margin-bottom: 12px; background: white; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; }
     .zone-header { padding: 10px 14px; background: #fafafa; border-bottom: 1px solid #e0e0e0; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; }
@@ -44,20 +44,11 @@
     .btn:hover { background: #fafafa; border-color: #999; }
     .btn-success { background: #4caf50; color: white; border: none; }
     .btn-success:hover { background: #45a049; }
-    .category-btn { padding: 8px 12px; margin: 6px 0; background: white; border: 1px solid #e0e0e0; border-radius: 6px; cursor: pointer; font-size: 13px; text-align: left; transition: all 0.2s; width: 100%; }
-    .category-btn.selected { background: #2196f3; color: white; border-color: #2196f3; }
-    .category-btn:hover { background: #f0f0f0; }
-    .category-btn.selected:hover { background: #1976d2; }
     .stat-card { background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; }
     .stat-label { font-size: 12px; color: #999; margin-bottom: 4px; }
     .stat-value { font-size: 24px; font-weight: 500; color: #2c2c2a; }
-    .stat-subtext { font-size: 11px; color: #999; margin-top: 4px; }
     .error-msg { color: #d32f2f; font-size: 12px; margin-top: 4px; }
     .success-msg { color: #4caf50; font-size: 12px; margin-top: 4px; }
-    .handover-entry { background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; }
-    .entry-category { display: inline-block; background: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; margin-bottom: 6px; }
-    .entry-text { font-size: 13px; color: #2c2c2a; line-height: 1.5; margin-bottom: 6px; }
-    .entry-meta { font-size: 11px; color: #999; }
     .char-count { font-size: 11px; color: #999; margin-top: 4px; }
   </style>
 </head>
@@ -78,13 +69,12 @@
         <option value="Joseph">Joseph</option>
         <option value="Marion">Marion</option>
         <option value="Aimy">Aimy</option>
-        <option value="Auxence">Auxence</option>
+        <option value="Aux">Aux</option>
         <option value="Axel">Axel</option>
         <option value="Cédric">Cédric</option>
         <option value="Jordan">Jordan</option>
         <option value="Loanne">Loanne</option>
         <option value="Laurine">Laurine</option>
-        <option value="Thomas">Thomas</option>
         <option value="Autre">Autre</option>
       </select>
     </div>
@@ -99,13 +89,30 @@
       <input type="text" id="handover-supervisor" placeholder="Ton nom (validation final)">
     </div>
     
-    <div class="section-title">Catégorie</div>
-    <div id="categories-container"></div>
+    <div class="section-title">Notes par catégorie (80 car max chacune)</div>
     
     <div class="input-group">
-      <label class="input-label">Notes (200 car max)</label>
-      <textarea id="handover-notes" placeholder="Détails pour la prochaine équipe..." maxlength="200"></textarea>
-      <div class="char-count"><span id="char-count">0</span>/200</div>
+      <label class="input-label">🔴 Problèmes</label>
+      <textarea class="category-notes" data-category="problems" placeholder="Problèmes détectés..." maxlength="80"></textarea>
+      <div class="char-count"><span class="category-count">0</span>/80</div>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">📋 À faire demain</label>
+      <textarea class="category-notes" data-category="todo" placeholder="Tâches à compléter..." maxlength="80"></textarea>
+      <div class="char-count"><span class="category-count">0</span>/80</div>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">👤 Clients</label>
+      <textarea class="category-notes" data-category="clients" placeholder="Infos clients importantes..." maxlength="80"></textarea>
+      <div class="char-count"><span class="category-count">0</span>/80</div>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">🔧 Équipement</label>
+      <textarea class="category-notes" data-category="equipment" placeholder="État des machines..." maxlength="80"></textarea>
+      <div class="char-count"><span class="category-count">0</span>/80</div>
     </div>
 
     <button class="btn btn-success" onclick="saveHandover()">Valider passation</button>
@@ -172,14 +179,6 @@ const zones = {
   ]
 };
 
-const categories = [
-  { id: 'problems', label: 'Problèmes' },
-  { id: 'todo', label: 'À faire demain' },
-  { id: 'clients', label: 'Clients' },
-  { id: 'equipment', label: 'Équipement' }
-];
-
-let currentCategory = 'problems';
 let dashboardUnlocked = false;
 
 function renderChecklist() {
@@ -216,25 +215,8 @@ function renderChecklist() {
   restoreChecklistState();
 }
 
-function renderCategories() {
-  const container = document.getElementById('categories-container');
-  let html = '';
-  categories.forEach(cat => {
-    html += `
-      <button class="category-btn ${currentCategory === cat.id ? 'selected' : ''}" onclick="selectCategory('${cat.id}')">
-        ${cat.label}
-      </button>
-    `;
-  });
-  container.innerHTML = html;
-}
-
-function selectCategory(catId) {
-  currentCategory = catId;
-  renderCategories();
-}
-
 function toggleZone(zoneId) {
+  saveChecklistState();
   const zoneKey = `zone-${zoneId}`;
   const isOpen = localStorage.getItem(`${zoneKey}-open`) === 'true';
   localStorage.setItem(`${zoneKey}-open`, !isOpen);
@@ -249,56 +231,63 @@ function restoreChecklistState() {
   });
 }
 
+function saveChecklistState() {
+  const today = new Date().toISOString().split('T')[0];
+  const data = { checker: document.getElementById('checker-name').value, timestamp: new Date().toISOString() };
+  document.querySelectorAll('input[type="checkbox"]').forEach(el => {
+    data[el.id] = el.checked;
+  });
+  localStorage.setItem(`checklist-${today}`, JSON.stringify(data));
+}
+
 function saveChecklist() {
   const name = document.getElementById('checker-name').value;
   if (!name) {
     document.getElementById('checklist-msg').innerHTML = '<div class="error-msg">Entre ton prénom</div>';
     return;
   }
-  
-  const today = new Date().toISOString().split('T')[0];
-  const data = { checker: name, timestamp: new Date().toISOString() };
-  document.querySelectorAll('input[type="checkbox"]').forEach(el => {
-    data[el.id] = el.checked;
-  });
-  localStorage.setItem(`checklist-${today}`, JSON.stringify(data));
+  saveChecklistState();
   document.getElementById('checklist-msg').innerHTML = '<div class="success-msg">✓ Checklist sauvegardée !</div>';
   setTimeout(() => { document.getElementById('checklist-msg').innerHTML = ''; }, 2000);
 }
 
 function setupCharCount() {
-  const textarea = document.getElementById('handover-notes');
-  textarea.addEventListener('input', () => {
-    document.getElementById('char-count').textContent = textarea.value.length;
+  document.querySelectorAll('.category-notes').forEach(textarea => {
+    textarea.addEventListener('input', function() {
+      const parent = this.closest('.input-group');
+      const countSpan = parent.querySelector('.category-count');
+      if (countSpan) countSpan.textContent = this.value.length;
+    });
   });
 }
 
 function saveHandover() {
   const sup = document.getElementById('handover-supervisor').value;
-  const notes = document.getElementById('handover-notes').value;
-  
-  if (!sup || !notes) {
-    document.getElementById('handover-msg').innerHTML = '<div class="error-msg">Remplis superviseur + notes</div>';
+  if (!sup) {
+    document.getElementById('handover-msg').innerHTML = '<div class="error-msg">Entre le superviseur</div>';
     return;
   }
   
-  const today = new Date().toISOString().split('T')[0];
   const entry = {
     supervisor: sup,
-    category: currentCategory,
-    categoryLabel: categories.find(c => c.id === currentCategory).label,
-    notes: notes,
-    timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+    timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+    notes: {
+      problems: document.querySelector('[data-category="problems"]').value,
+      todo: document.querySelector('[data-category="todo"]').value,
+      clients: document.querySelector('[data-category="clients"]').value,
+      equipment: document.querySelector('[data-category="equipment"]').value
+    }
   };
   
+  const today = new Date().toISOString().split('T')[0];
   const key = `handover-${today}`;
   const list = JSON.parse(localStorage.getItem(key) || '[]');
   list.push(entry);
   localStorage.setItem(key, JSON.stringify(list));
   
   document.getElementById('handover-supervisor').value = '';
-  document.getElementById('handover-notes').value = '';
-  document.getElementById('char-count').textContent = '0';
+  document.querySelectorAll('.category-notes').forEach(ta => ta.value = '');
+  document.querySelectorAll('.category-count').forEach(span => span.textContent = '0');
   document.getElementById('handover-msg').innerHTML = '<div class="success-msg">✓ Passation sauvegardée !</div>';
   setTimeout(() => { document.getElementById('handover-msg').innerHTML = ''; }, 2000);
   renderHandoverHistory();
@@ -315,14 +304,16 @@ function renderHandoverHistory() {
   }
   
   let html = '';
-  list.forEach(entry => {
-    html += `
-      <div class="handover-entry">
-        <div class="entry-category">${entry.categoryLabel}</div>
-        <div class="entry-text">${entry.notes}</div>
-        <div class="entry-meta">Par ${entry.supervisor} à ${entry.timestamp}</div>
-      </div>
-    `;
+  list.forEach((entry, idx) => {
+    html += `<div style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 12px 14px; margin-bottom: 12px;">`;
+    html += `<div style="font-size: 12px; color: #999; margin-bottom: 8px;">Par ${entry.supervisor} à ${entry.timestamp}</div>`;
+    
+    if (entry.notes.problems) html += `<div style="margin-bottom: 8px;"><span style="background: #ffe0e0; color: #c62828; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500;">🔴 Problèmes</span><div style="font-size: 13px; margin-top: 4px; color: #2c2c2a;">${entry.notes.problems}</div></div>`;
+    if (entry.notes.todo) html += `<div style="margin-bottom: 8px;"><span style="background: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500;">📋 À faire demain</span><div style="font-size: 13px; margin-top: 4px; color: #2c2c2a;">${entry.notes.todo}</div></div>`;
+    if (entry.notes.clients) html += `<div style="margin-bottom: 8px;"><span style="background: #e3f2fd; color: #1565c0; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500;">👤 Clients</span><div style="font-size: 13px; margin-top: 4px; color: #2c2c2a;">${entry.notes.clients}</div></div>`;
+    if (entry.notes.equipment) html += `<div><span style="background: #f3e5f5; color: #6a1b9a; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500;">🔧 Équipement</span><div style="font-size: 13px; margin-top: 4px; color: #2c2c2a;">${entry.notes.equipment}</div></div>`;
+    
+    html += `</div>`;
   });
   container.innerHTML = html;
 }
@@ -366,6 +357,7 @@ function switchTab(tab) {
   document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
   
   if (tab === 'handover') {
+    setupCharCount();
     renderHandoverHistory();
   } else if (tab === 'dashboard' && dashboardUnlocked) {
     updateDashboard();
@@ -373,7 +365,6 @@ function switchTab(tab) {
 }
 
 renderChecklist();
-renderCategories();
 setupCharCount();
 renderHandoverHistory();
 </script>
