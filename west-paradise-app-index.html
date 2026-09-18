@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>West Paradise - Checklist & Passation</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f5;
+      color: #2c2c2a;
+      overflow-x: hidden;
+    }
+    .container { width: 100%; max-width: 100%; min-height: 100vh; }
+    .tabs { display: flex; gap: 8px; padding: 12px; border-bottom: 1px solid #e0e0e0; background: white; position: sticky; top: 0; z-index: 100; }
+    .tab-btn { padding: 8px 14px; background: white; border: 1px solid #e0e0e0; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; color: #999; transition: all 0.2s; }
+    .tab-btn.active { background: white; color: #2c2c2a; border-color: #999; }
+    .tab-content { display: none; padding: 16px; max-width: 600px; }
+    .tab-content.active { display: block; }
+    .section-title { font-size: 14px; font-weight: 500; margin: 16px 0 12px; color: #2c2c2a; }
+    .section-title:first-of-type { margin-top: 0; }
+    .input-group { margin-bottom: 16px; }
+    .input-label { font-size: 13px; color: #666; margin-bottom: 6px; display: block; font-weight: 500; }
+    select, input[type="text"], input[type="password"], textarea { 
+      width: 100%; padding: 10px 12px; border: 1px solid #e0e0e0; border-radius: 6px; 
+      font-size: 13px; font-family: inherit; background: white; color: #2c2c2a;
+    }
+    textarea { resize: vertical; min-height: 100px; }
+    select:focus, input:focus, textarea:focus { outline: none; border-color: #2c2c2a; background: #fafafa; }
+    .zone-group { margin-bottom: 12px; background: white; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; }
+    .zone-header { padding: 10px 14px; background: #fafafa; border-bottom: 1px solid #e0e0e0; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+    .zone-header h3 { font-size: 14px; font-weight: 500; margin: 0; }
+    .zone-header:hover { background: #f0f0f0; }
+    .zone-tasks { padding: 12px 14px; display: none; }
+    .zone-tasks.open { display: block; }
+    .task-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; font-size: 13px; }
+    .task-item input[type="checkbox"] { margin-top: 2px; cursor: pointer; flex-shrink: 0; }
+    .task-item label { flex: 1; cursor: pointer; }
+    .task-item input[type="checkbox"]:checked + label { color: #999; text-decoration: line-through; }
+    .chevron { font-size: 14px; }
+    .btn { display: inline-block; padding: 10px 16px; background: white; border: 1px solid #e0e0e0; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; color: #2c2c2a; margin-top: 12px; width: 100%; text-align: center; transition: all 0.2s; }
+    .btn:hover { background: #fafafa; border-color: #999; }
+    .btn-success { background: #4caf50; color: white; border: none; }
+    .btn-success:hover { background: #45a049; }
+    .category-btn { padding: 8px 12px; margin: 6px 0; background: white; border: 1px solid #e0e0e0; border-radius: 6px; cursor: pointer; font-size: 13px; text-align: left; transition: all 0.2s; width: 100%; }
+    .category-btn.selected { background: #2196f3; color: white; border-color: #2196f3; }
+    .category-btn:hover { background: #f0f0f0; }
+    .category-btn.selected:hover { background: #1976d2; }
+    .stat-card { background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; }
+    .stat-label { font-size: 12px; color: #999; margin-bottom: 4px; }
+    .stat-value { font-size: 24px; font-weight: 500; color: #2c2c2a; }
+    .stat-subtext { font-size: 11px; color: #999; margin-top: 4px; }
+    .error-msg { color: #d32f2f; font-size: 12px; margin-top: 4px; }
+    .success-msg { color: #4caf50; font-size: 12px; margin-top: 4px; }
+    .handover-entry { background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; }
+    .entry-category { display: inline-block; background: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; margin-bottom: 6px; }
+    .entry-text { font-size: 13px; color: #2c2c2a; line-height: 1.5; margin-bottom: 6px; }
+    .entry-meta { font-size: 11px; color: #999; }
+    .char-count { font-size: 11px; color: #999; margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('checklist')">Checklist</button>
+    <button class="tab-btn" onclick="switchTab('handover')">Passation</button>
+    <button class="tab-btn" onclick="switchTab('dashboard')">Dashboard</button>
+  </div>
+
+  <div id="checklist" class="tab-content active">
+    <div class="input-group">
+      <label class="input-label">Qui pointe ?</label>
+      <select id="checker-name">
+        <option value="">— Ton prénom —</option>
+        <option value="Joseph">Joseph</option>
+        <option value="Marion">Marion</option>
+        <option value="Aimy">Aimy</option>
+        <option value="Aux">Aux</option>
+        <option value="Axel">Axel</option>
+        <option value="Cédric">Cédric</option>
+        <option value="Jordan">Jordan</option>
+        <option value="Loanne">Loanne</option>
+        <option value="Laurine">Laurine</option>
+        <option value="Autre">Autre</option>
+      </select>
+    </div>
+    <div id="zones-container"></div>
+    <button class="btn btn-success" onclick="saveChecklist()">Enregistrer ma checklist</button>
+    <div id="checklist-msg"></div>
+  </div>
+
+  <div id="handover" class="tab-content">
+    <div class="input-group">
+      <label class="input-label">Superviseur</label>
+      <input type="text" id="handover-supervisor" placeholder="Ton nom (validation final)">
+    </div>
+    
+    <div class="section-title">Catégorie</div>
+    <div id="categories-container"></div>
+    
+    <div class="input-group">
+      <label class="input-label">Notes (200 car max)</label>
+      <textarea id="handover-notes" placeholder="Détails pour la prochaine équipe..." maxlength="200"></textarea>
+      <div class="char-count"><span id="char-count">0</span>/200</div>
+    </div>
+
+    <button class="btn btn-success" onclick="saveHandover()">Valider passation</button>
+    <div id="handover-msg"></div>
+    
+    <div class="section-title" style="margin-top: 20px;">Passations du jour</div>
+    <div id="handover-history"></div>
+  </div>
+
+  <div id="dashboard" class="tab-content">
+    <div class="input-group">
+      <label class="input-label">Code superviseur</label>
+      <input type="password" id="dashboard-code" placeholder="4 chiffres" maxlength="4">
+      <button class="btn" onclick="unlockDashboard()" style="margin-top: 8px;">Déverrouiller</button>
+      <div id="dashboard-msg"></div>
+    </div>
+    
+    <div id="dashboard-locked" style="text-align: center; padding: 20px; color: #999;">
+      Entre le code pour accéder au dashboard
+    </div>
+
+    <div id="dashboard-unlocked" style="display: none;">
+      <div class="stat-card">
+        <div class="stat-label">Complétude aujourd'hui</div>
+        <div class="stat-value" id="dashboard-completion">0%</div>
+      </div>
+      
+      <div class="section-title">Stats par zone</div>
+      <div id="dashboard-zones"></div>
+      
+      <div class="section-title" style="margin-top: 20px;">Passations en attente</div>
+      <div id="dashboard-handovers"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPERVISOR_CODE = '7185';
+
+const zones = {
+  bowling: [
+    { id: 'pin-spotters', name: 'Pin spotters', tasks: ['Allée dégagée', 'Armoire rangée', 'Tour propre'] },
+    { id: 'bureau', name: 'Bureau', tasks: ['Bureaux propres', 'Poubelles vidées', 'Sol balayé/serpillé'] },
+    { id: 'karaoke', name: 'Karaoké', tasks: ['Surfaces nettoyées', 'Micros chargés', 'Miroirs propres', 'Murs propres'] },
+    { id: 'arcades-bowling', name: 'Arcades', tasks: ['Jeux dépoussiérés', 'Vitrines propres', 'Sol balayé', 'Poubelles vidées', 'Rack chaussures OK'] },
+    { id: 'pistes', name: 'Pistes bowling', tasks: ['Sol balayé/serpillé', 'Boules rangées', 'Pistes propres', 'iPads branchées', 'Tabourets alignés'] },
+    { id: 'restaurant', name: 'Restaurant', tasks: ['Tables propres', 'Chaises propres', 'Sol autolaveuse passé', 'VIP coussins époussetés'] },
+    { id: 'toilettes-bowling', name: 'Toilettes', tasks: ['Surfaces désinfectées', 'Cuvettes propres', 'Distributeurs papier chargés', 'Poubelles vidées'] },
+    { id: 'accueil', name: 'Accueil', tasks: ['Ordinateurs rangés', 'Surfaces dépoussiérées', 'Rien qui traîne'] },
+    { id: 'bar', name: 'Bar', tasks: ['Arrière-bar rangé', 'Snacking visible propre', 'Réfrigérateurs dépoussiérés', 'Congélateur glace OK'] },
+    { id: 'cuisine', name: 'Cuisine', tasks: ['Surfaces propres', 'Outillage rangé', 'Hotte propre', 'Fenêtres propres'] },
+    { id: 'reserve', name: 'Réserve', tasks: ['TGBT propre (ne pas toucher)', 'Épicerie sec organisée', 'Matériel rangé'] }
+  ],
+  laser: [
+    { id: 'laser-caisse', name: 'Caisse laser', tasks: ['Caisse propre/rangée', 'Machine popcorn propre', 'Granitas propres', 'Snacking chargé', 'Stocks OK'] },
+    { id: 'airlock', name: 'Airlock', tasks: ['Clim 24°', 'Sol propre', 'Gilets chargés', 'Labyrinthe balayé', 'Issues secours accessibles'] },
+    { id: 'quiz', name: 'Quiz boxing', tasks: ['Pupitres désinfectés', 'Sol dépoussiéré', 'Grande vitre propre'] },
+    { id: 'arcades-laser', name: 'Arcades laser', tasks: ['Air hockey propres', 'Boxeurs propres', 'Tout fonctionnel'] }
+  ],
+  ext: [
+    { id: 'parking', name: 'Parking', tasks: ['Tour du parking fait', 'Caniveau vidé', 'Pas de débris'] },
+    { id: 'poubelle', name: 'Poubelles', tasks: ['Containers bien organisés', 'Pas de débris autour'] },
+    { id: 'entree', name: 'Entrée', tasks: ['4 poubelles vidées', 'Cendriers vidés', 'Gazon synthétique vierge', 'Enseigne dépoussiérée'] }
+  ]
+};
+
+const categories = [
+  { id: 'problems', label: 'Problèmes' },
+  { id: 'todo', label: 'À faire demain' },
+  { id: 'clients', label: 'Clients' },
+  { id: 'equipment', label: 'Équipement' }
+];
+
+let currentCategory = 'problems';
+let dashboardUnlocked = false;
+
+function renderChecklist() {
+  const container = document.getElementById('zones-container');
+  let html = '';
+  
+  for (const [section, zoneList] of Object.entries(zones)) {
+    const sectionName = section === 'bowling' ? '🎳 Bowling' : section === 'laser' ? '🎯 Laser' : '🚗 Extérieur';
+    html += `<div class="section-title">${sectionName}</div>`;
+    
+    zoneList.forEach(zone => {
+      const zoneKey = `zone-${zone.id}`;
+      const isOpen = localStorage.getItem(`${zoneKey}-open`) === 'true';
+      html += `
+        <div class="zone-group">
+          <div class="zone-header" onclick="toggleZone('${zone.id}')">
+            <h3>${zone.name}</h3>
+            <span class="chevron">${isOpen ? '▼' : '▶'}</span>
+          </div>
+          <div class="zone-tasks ${isOpen ? 'open' : ''}">
+            ${zone.tasks.map((task, i) => `
+              <div class="task-item">
+                <input type="checkbox" id="${zoneKey}-task-${i}" data-zone="${zone.id}" data-task="${i}">
+                <label for="${zoneKey}-task-${i}">${task}</label>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    });
+  }
+  
+  container.innerHTML = html;
+  restoreChecklistState();
+}
+
+function renderCategories() {
+  const container = document.getElementById('categories-container');
+  let html = '';
+  categories.forEach(cat => {
+    html += `
+      <button class="category-btn ${currentCategory === cat.id ? 'selected' : ''}" onclick="selectCategory('${cat.id}')">
+        ${cat.label}
+      </button>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function selectCategory(catId) {
+  currentCategory = catId;
+  renderCategories();
+}
+
+function toggleZone(zoneId) {
+  const zoneKey = `zone-${zoneId}`;
+  const isOpen = localStorage.getItem(`${zoneKey}-open`) === 'true';
+  localStorage.setItem(`${zoneKey}-open`, !isOpen);
+  renderChecklist();
+}
+
+function restoreChecklistState() {
+  const today = new Date().toISOString().split('T')[0];
+  const saved = JSON.parse(localStorage.getItem(`checklist-${today}`) || '{}');
+  document.querySelectorAll('input[type="checkbox"]').forEach(el => {
+    el.checked = saved[el.id] || false;
+  });
+}
+
+function saveChecklist() {
+  const name = document.getElementById('checker-name').value;
+  if (!name) {
+    document.getElementById('checklist-msg').innerHTML = '<div class="error-msg">Entre ton prénom</div>';
+    return;
+  }
+  
+  const today = new Date().toISOString().split('T')[0];
+  const data = { checker: name, timestamp: new Date().toISOString() };
+  document.querySelectorAll('input[type="checkbox"]').forEach(el => {
+    data[el.id] = el.checked;
+  });
+  localStorage.setItem(`checklist-${today}`, JSON.stringify(data));
+  document.getElementById('checklist-msg').innerHTML = '<div class="success-msg">✓ Checklist sauvegardée !</div>';
+  setTimeout(() => { document.getElementById('checklist-msg').innerHTML = ''; }, 2000);
+}
+
+function setupCharCount() {
+  const textarea = document.getElementById('handover-notes');
+  textarea.addEventListener('input', () => {
+    document.getElementById('char-count').textContent = textarea.value.length;
+  });
+}
+
+function saveHandover() {
+  const sup = document.getElementById('handover-supervisor').value;
+  const notes = document.getElementById('handover-notes').value;
+  
+  if (!sup || !notes) {
+    document.getElementById('handover-msg').innerHTML = '<div class="error-msg">Remplis superviseur + notes</div>';
+    return;
+  }
+  
+  const today = new Date().toISOString().split('T')[0];
+  const entry = {
+    supervisor: sup,
+    category: currentCategory,
+    categoryLabel: categories.find(c => c.id === currentCategory).label,
+    notes: notes,
+    timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+  };
+  
+  const key = `handover-${today}`;
+  const list = JSON.parse(localStorage.getItem(key) || '[]');
+  list.push(entry);
+  localStorage.setItem(key, JSON.stringify(list));
+  
+  document.getElementById('handover-supervisor').value = '';
+  document.getElementById('handover-notes').value = '';
+  document.getElementById('char-count').textContent = '0';
+  document.getElementById('handover-msg').innerHTML = '<div class="success-msg">✓ Passation sauvegardée !</div>';
+  setTimeout(() => { document.getElementById('handover-msg').innerHTML = ''; }, 2000);
+  renderHandoverHistory();
+}
+
+function renderHandoverHistory() {
+  const today = new Date().toISOString().split('T')[0];
+  const list = JSON.parse(localStorage.getItem(`handover-${today}`) || '[]');
+  const container = document.getElementById('handover-history');
+  
+  if (list.length === 0) {
+    container.innerHTML = '<p style="font-size: 13px; color: #999;">Aucune passation aujourd\'hui</p>';
+    return;
+  }
+  
+  let html = '';
+  list.forEach(entry => {
+    html += `
+      <div class="handover-entry">
+        <div class="entry-category">${entry.categoryLabel}</div>
+        <div class="entry-text">${entry.notes}</div>
+        <div class="entry-meta">Par ${entry.supervisor} à ${entry.timestamp}</div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function unlockDashboard() {
+  const code = document.getElementById('dashboard-code').value;
+  if (code === SUPERVISOR_CODE) {
+    dashboardUnlocked = true;
+    document.getElementById('dashboard-locked').style.display = 'none';
+    document.getElementById('dashboard-unlocked').style.display = 'block';
+    updateDashboard();
+  } else {
+    document.getElementById('dashboard-msg').innerHTML = '<div class="error-msg">Code incorrect</div>';
+  }
+}
+
+function updateDashboard() {
+  const today = new Date().toISOString().split('T')[0];
+  const checklistData = JSON.parse(localStorage.getItem(`checklist-${today}`) || '{}');
+  
+  let total = 0, completed = 0;
+  Object.keys(checklistData).forEach(key => {
+    if (key !== 'checker' && key !== 'timestamp' && checklistData[key] === true) completed++;
+    if (key !== 'checker' && key !== 'timestamp') total++;
+  });
+  
+  const pct = total > 0 ? Math.round(completed / total * 100) : 0;
+  document.getElementById('dashboard-completion').textContent = pct + '%';
+  
+  const handover = JSON.parse(localStorage.getItem(`handover-${today}`) || '[]');
+  let hoContainer = document.getElementById('dashboard-handovers');
+  hoContainer.innerHTML = handover.length > 0 ? 
+    `<p style="font-size: 13px; color: #999;">${handover.length} passation${handover.length > 1 ? 's' : ''} enregistrée${handover.length > 1 ? 's' : ''}</p>` :
+    '<p style="font-size: 13px; color: #999;">Aucune passation</p>';
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById(tab).classList.add('active');
+  document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+  
+  if (tab === 'handover') {
+    renderHandoverHistory();
+  } else if (tab === 'dashboard' && dashboardUnlocked) {
+    updateDashboard();
+  }
+}
+
+renderChecklist();
+renderCategories();
+setupCharCount();
+renderHandoverHistory();
+</script>
+
+</body>
+</html>
