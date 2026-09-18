@@ -69,12 +69,11 @@
         <option value="Joseph">Joseph</option>
         <option value="Marion">Marion</option>
         <option value="Aimy">Aimy</option>
-        <option value="Auxence">Auxence</option>
+        <option value="Aux">Aux</option>
         <option value="Axel">Axel</option>
         <option value="Cédric">Cédric</option>
         <option value="Jordan">Jordan</option>
         <option value="Loanne">Loanne</option>
-        <option value="Thomas">Thomas</option>
         <option value="Laurine">Laurine</option>
         <option value="Autre">Autre</option>
       </select>
@@ -155,23 +154,24 @@ const SUPERVISOR_CODE = '7185';
 
 const zones = {
   bowling: [
-    { id: 'pin-spotters', name: 'Pin spotters', tasks: ['Allée dégagée', 'Armoire rangée', 'Tour propre'] },
-    { id: 'bureau', name: 'Bureau', tasks: ['Bureaux propres', 'Poubelles vidées', 'Sol balayé/serpillé'] },
-    { id: 'karaoke', name: 'Karaoké', tasks: ['Surfaces nettoyées', 'Micros chargés', 'Miroirs propres', 'Murs propres'] },
-    { id: 'arcades-bowling', name: 'Arcades', tasks: ['Jeux dépoussiérés', 'Vitrines propres', 'Sol balayé', 'Poubelles vidées', 'Rack chaussures OK'] },
-    { id: 'pistes', name: 'Pistes bowling', tasks: ['Sol balayé/serpillé', 'Boules rangées', 'Pistes propres', 'iPads branchées', 'Tabourets alignés'] },
-    { id: 'restaurant', name: 'Restaurant', tasks: ['Tables propres', 'Chaises propres', 'Sol autolaveuse passé', 'VIP coussins époussetés'] },
+    { id: 'pin-spotters', name: 'Pin spotters', tasks: ['Allée dégagée', 'Armoire rangée', 'Tour propre', '8 pistes opérationnelles', 'Bumpers des 8 pistes OK', '4 ball lifts opérationnels', 'Boules rangées dans le rack', 'Boules et keys propres'] },
+    { id: 'bureau', name: 'Bureau', tasks: ['Bureaux propres', 'Poubelles vidées', 'Sol balayé/serpillé', 'Réserve rangée', 'Livraisons rangées', 'Dates de péremption respectées'] },
+    { id: 'karaoke', name: 'Karaoké', tasks: ['Surfaces nettoyées', 'Micros chargés', 'Miroirs propres', 'Murs propres', 'Climatisation éteinte', 'Branchements opérationnels', 'Lumières fonctionnent'] },
+    { id: 'arcades-bowling', name: 'Arcades', tasks: ['Jeux dépoussiérés', 'Vitrines propres', 'Sol balayé', 'Poubelles vidées', 'Rack chaussures OK', 'Chaussures désinfectées', 'Branchements électriques OK', 'Machine à clip bien chargée'] },
+    { id: 'pistes', name: 'Pistes bowling', tasks: ['Sol balayé/serpillé', 'Boules rangées', 'Pistes propres', 'iPads branchées', 'Tabourets alignés', 'Pistes huilées aujourd\'hui'] },
+    { id: 'restaurant', name: 'Restaurant', tasks: ['Tables propres', 'Chaises propres', 'Sol autolaveuse passé', 'VIP coussins époussetés', 'Numéros des tables propres', 'QR codes visibles'] },
     { id: 'toilettes-bowling', name: 'Toilettes', tasks: ['Surfaces désinfectées', 'Cuvettes propres', 'Distributeurs papier chargés', 'Poubelles vidées'] },
     { id: 'accueil', name: 'Accueil', tasks: ['Ordinateurs rangés', 'Surfaces dépoussiérées', 'Rien qui traîne'] },
-    { id: 'bar', name: 'Bar', tasks: ['Arrière-bar rangé', 'Snacking visible propre', 'Réfrigérateurs dépoussiérés', 'Congélateur glace OK'] },
-    { id: 'cuisine', name: 'Cuisine', tasks: ['Surfaces propres', 'Outillage rangé', 'Hotte propre', 'Fenêtres propres'] },
-    { id: 'reserve', name: 'Réserve', tasks: ['TGBT propre (ne pas toucher)', 'Épicerie sec organisée', 'Matériel rangé'] }
+    { id: 'bar', name: 'Bar', tasks: ['Arrière-bar rangé', 'Snacking visible propre', 'Réfrigérateurs dépoussiérés', 'Congélateur glace OK', 'Frigos bien remplis', 'Snacking bien rempli', 'Granitas chargés et propres', 'Menus visibles et propres', 'Tireuse à bière opérationnelle', 'Stock de fûts suffisant'] },
+    { id: 'cuisine', name: 'Cuisine', tasks: ['Surfaces propres', 'Outillage rangé', 'Hotte propre', 'Fenêtres propres', 'Friteuse opérationnelle', 'Plancha opérationnelle', 'Chambre positive OK', 'Chambre négative OK', 'Stock denrées service OK'] },
+    { id: 'reserve', name: 'Réserve', tasks: ['TGBT propre (ne pas toucher)', 'Épicerie sec organisée', 'Matériel rangé', 'Espace dégagé'] }
   ],
   laser: [
     { id: 'laser-caisse', name: 'Caisse laser', tasks: ['Caisse propre/rangée', 'Machine popcorn propre', 'Granitas propres', 'Snacking chargé', 'Stocks OK'] },
     { id: 'airlock', name: 'Airlock', tasks: ['Clim 24°', 'Sol propre', 'Gilets chargés', 'Labyrinthe balayé', 'Issues secours accessibles'] },
     { id: 'quiz', name: 'Quiz boxing', tasks: ['Pupitres désinfectés', 'Sol dépoussiéré', 'Grande vitre propre'] },
-    { id: 'arcades-laser', name: 'Arcades laser', tasks: ['Air hockey propres', 'Boxeurs propres', 'Tout fonctionnel'] }
+    { id: 'arcades-laser', name: 'Arcades laser', tasks: ['Air hockey propres', 'Boxeurs propres', 'Tout fonctionnel'] },
+    { id: 'gilets', name: 'Suivi des gilets', tasks: ['40 gilets opérationnels', '40 gilets branchés'] }
   ],
   ext: [
     { id: 'parking', name: 'Parking', tasks: ['Tour du parking fait', 'Caniveau vidé', 'Pas de débris'] },
