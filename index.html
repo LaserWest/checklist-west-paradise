@@ -64,7 +64,7 @@
   <div id="checklist" class="tab-content active">
     <div class="input-group">
       <label class="input-label">Qui pointe ?</label>
-      <select id="checker-name">
+      <select id="checker-name" onchange="onCheckerChange()">
         <option value="">— Ton prénom —</option>
         <option value="Joseph">Joseph</option>
         <option value="Marion">Marion</option>
@@ -155,10 +155,10 @@ const SUPERVISOR_CODE = '7185';
 
 const zones = {
   bowling: [
-    { id: 'pin-spotters', name: 'Pin spotters', tasks: ['Allée dégagée', 'Armoire rangée', 'Tour propre', '8 pistes opérationnelles', 'Bumpers des 8 pistes OK', '4 ball lifts opérationnels', 'Boules rangées dans le rack', 'Boules et keys propres'] },
+    { id: 'pin-spotters', name: 'Pin spotters', tasks: ['Allée dégagée', 'Armoire rangée', 'Tour propre', '8 pistes opérationnelles', 'Bumpers des 8 pistes OK', '4 ball lifts opérationnels', 'Boules rangées dans le rack', 'Boules et quilles propres'] },
     { id: 'bureau', name: 'Bureau', tasks: ['Bureaux propres', 'Poubelles vidées', 'Sol balayé/serpillé', 'Réserve rangée', 'Livraisons rangées', 'Dates de péremption respectées'] },
     { id: 'karaoke', name: 'Karaoké', tasks: ['Surfaces nettoyées', 'Micros chargés', 'Miroirs propres', 'Murs propres', 'Climatisation éteinte', 'Branchements opérationnels', 'Lumières fonctionnent'] },
-    { id: 'arcades-bowling', name: 'Arcades', tasks: ['Jeux dépoussiérés', 'Vitrines propres', 'Sol balayé', 'Poubelles vidées', 'Rack chaussures OK', 'Chaussures désinfectées', 'Branchements électriques OK', 'Machine à clip bien chargée'] },
+    { id: 'arcades-bowling', name: 'Arcades', tasks: ['Jeux dépoussiérés', 'Vitrines propres', 'Sol balayé', 'Poubelles vidées', 'Rack chaussures OK', 'Chaussures désinfectées', 'Branchements électriques OK', 'Machine à clip : les clips sont pleins'] },
     { id: 'pistes', name: 'Pistes bowling', tasks: ['Sol balayé/serpillé', 'Boules rangées', 'Pistes propres', 'iPads branchées', 'Tabourets alignés', 'Pistes huilées aujourd\'hui'] },
     { id: 'restaurant', name: 'Restaurant', tasks: ['Tables propres', 'Chaises propres', 'Sol autolaveuse passé', 'VIP coussins époussetés', 'Numéros des tables propres', 'QR codes visibles'] },
     { id: 'toilettes-bowling', name: 'Toilettes', tasks: ['Surfaces désinfectées', 'Cuvettes propres', 'Distributeurs papier chargés', 'Poubelles vidées'] },
@@ -182,6 +182,16 @@ const zones = {
 };
 
 let dashboardUnlocked = false;
+
+function getCheckerName() {
+  return document.getElementById('checker-name').value;
+}
+
+function getChecklistKey() {
+  const today = new Date().toISOString().split('T')[0];
+  const checker = getCheckerName();
+  return `checklist-${today}-${checker}`;
+}
 
 function renderChecklist() {
   const container = document.getElementById('zones-container');
@@ -226,24 +236,35 @@ function toggleZone(zoneId) {
 }
 
 function restoreChecklistState() {
-  const today = new Date().toISOString().split('T')[0];
-  const saved = JSON.parse(localStorage.getItem(`checklist-${today}`) || '{}');
+  const checker = getCheckerName();
+  if (!checker) return;
+  
+  const key = getChecklistKey();
+  const saved = JSON.parse(localStorage.getItem(key) || '{}');
   document.querySelectorAll('input[type="checkbox"]').forEach(el => {
     el.checked = saved[el.id] || false;
   });
 }
 
 function saveChecklistState() {
-  const today = new Date().toISOString().split('T')[0];
-  const data = { checker: document.getElementById('checker-name').value, timestamp: new Date().toISOString() };
+  const checker = getCheckerName();
+  if (!checker) return;
+  
+  const key = getChecklistKey();
+  const data = { checker: checker, timestamp: new Date().toISOString() };
   document.querySelectorAll('input[type="checkbox"]').forEach(el => {
     data[el.id] = el.checked;
   });
-  localStorage.setItem(`checklist-${today}`, JSON.stringify(data));
+  localStorage.setItem(key, JSON.stringify(data));
+}
+
+function onCheckerChange() {
+  saveChecklistState();
+  restoreChecklistState();
 }
 
 function saveChecklist() {
-  const name = document.getElementById('checker-name').value;
+  const name = getCheckerName();
   if (!name) {
     document.getElementById('checklist-msg').innerHTML = '<div class="error-msg">Entre ton prénom</div>';
     return;
@@ -334,16 +355,54 @@ function unlockDashboard() {
 
 function updateDashboard() {
   const today = new Date().toISOString().split('T')[0];
-  const checklistData = JSON.parse(localStorage.getItem(`checklist-${today}`) || '{}');
   
-  let total = 0, completed = 0;
-  Object.keys(checklistData).forEach(key => {
-    if (key !== 'checker' && key !== 'timestamp' && checklistData[key] === true) completed++;
-    if (key !== 'checker' && key !== 'timestamp') total++;
+  // Get all checklist keys for today
+  let totalCompleted = 0, totalTasks = 0;
+  const checkerStats = {};
+  
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith(`checklist-${today}-`)) {
+      const checker = key.replace(`checklist-${today}-`, '');
+      const data = JSON.parse(localStorage.getItem(key) || '{}');
+      
+      let completed = 0, total = 0;
+      Object.keys(data).forEach(k => {
+        if (k !== 'checker' && k !== 'timestamp') {
+          total++;
+          if (data[k] === true) completed++;
+        }
+      });
+      
+      if (total > 0) {
+        const pct = Math.round(completed / total * 100);
+        checkerStats[checker] = { completed, total, pct };
+        totalCompleted += completed;
+        totalTasks += total;
+      }
+    }
+  }
+  
+  const totalPct = totalTasks > 0 ? Math.round(totalCompleted / totalTasks * 100) : 0;
+  document.getElementById('dashboard-completion').textContent = totalPct + '%';
+  
+  // Show per-person stats
+  let statsHtml = '';
+  Object.entries(checkerStats).forEach(([checker, stats]) => {
+    statsHtml += `
+      <div style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;">
+        <div style="font-size: 13px; font-weight: 500; margin-bottom: 4px;">${checker}</div>
+        <div style="font-size: 24px; font-weight: 500; color: #4caf50;">${stats.pct}%</div>
+        <div style="font-size: 11px; color: #999;">${stats.completed}/${stats.total} tâches</div>
+      </div>
+    `;
   });
   
-  const pct = total > 0 ? Math.round(completed / total * 100) : 0;
-  document.getElementById('dashboard-completion').textContent = pct + '%';
+  if (statsHtml) {
+    document.getElementById('dashboard-zones').innerHTML = statsHtml;
+  } else {
+    document.getElementById('dashboard-zones').innerHTML = '<p style="font-size: 13px; color: #999;">Aucun pointage aujourd\'hui</p>';
+  }
   
   const handover = JSON.parse(localStorage.getItem(`handover-${today}`) || '[]');
   let hoContainer = document.getElementById('dashboard-handovers');
